@@ -2,7 +2,7 @@
 #!/usr/bin/python2
 
 import sqlite3
-from bottle import route, request, post, run, template, static_file, response
+from bottle import route, request, post, run, template, static_file, response, redirect
 
 def write_To_DB(login, pwd, email):
     db = sqlite3.connect("site.db")
@@ -70,10 +70,23 @@ def do_login():
         user_pwd = read_pwd(login)
         if pwd == user_pwd:
             response.set_cookie("account", login, secret='some-secret-key')
-            return template("<p>Welcome {{name}}! You are now logged in.</p>", name=login)
+            redirect('/lk')
         else:
             return "Bad password!"
     else:
         return "Bad Login!"
+
+@route('/lk')
+def lk():
+    user = request.get_cookie("account", secret='some-secret-key')
+    if user:
+        return template("views/lk.tpl")
+    else:
+        return login()
+
+@route('/logout')
+def logout():
+    response.set_cookie('account', login, secret=' ')
+    return "You logged out"
 
 run(reloader=True, debug=True)
