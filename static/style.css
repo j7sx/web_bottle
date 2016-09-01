@@ -48,3 +48,22 @@ body {
             height: 80px;
             width: 900px;
 }
+
+#lk {
+            background:#99CC99;
+            margin: 30px auto;
+            width: 900px;
+            height: 600px;
+}
+
+#top {
+            background:#CCCEEE;
+            width: 900px;
+            height: 300px;
+}
+
+#bottom {
+            background:#0066FF;
+            width: 900px;
+            height: 300px;
+}
