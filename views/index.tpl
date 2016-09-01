@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-            <title>Пример блочной верстки</title>
+            <title>Bottle test</title>
 <link rel="stylesheet" type="text/css" href="../static/style.css" />
 </head>
  
