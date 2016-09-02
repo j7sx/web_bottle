@@ -75,14 +75,16 @@ def do_login():
             return "Bad password!"
     else:
         return "Bad Login!"
-
+@route('/restrict')
+def restrict():
+    return "You are not authorize. Please <a href='/login'>login</a> or <a href='/reg'>sight up</a>"
 @route('/lk')
 def lk():
     user = request.get_cookie("account", secret='some-secret-key')
     if user:
         return template("views/lk.tpl")
     else:
-        return login()
+        redirect('/restrict')
 
 @route('/logout')
 def logout():
