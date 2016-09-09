@@ -2,6 +2,9 @@
 #!/usr/bin/python2
 
 import sqlite3
+import random
+import hashlib
+import base64
 from bottle import route, request, post, run, template, static_file, response, redirect
 
 def write_To_DB(login, pwd, email):
@@ -27,6 +30,52 @@ def read_pwd(login):
     db.close()
     return result[0]
 
+def secret_key():
+	secret = '2345fgjsdrk/+63gdjsj'
+	#выбираем из строки secret 5 символов
+	r = random.sample(secret, 5)
+
+	#Преобразуем список из 5-ти символов в строку
+	string = ''.join(r)
+	sh=string + 'login'
+	secret_key = hashlib.sha1(sh).hexdigest()
+	return secret_key
+
+def set_session_key(sk, login):
+    sk = secret_key()
+    db = sqlite3.connect("site.db")
+    cur = db.cursor()
+    cur.execute("update users set session_id=? where login =?", (sk, login,))
+    db.commit()
+    db.close()
+
+def get_session_key(login):
+    db = sqlite3.connect("site.db")
+    cur = db.cursor()
+    cur.execute("select session_id from users where login =?", (login,))
+    sid = cur.fetchone()
+    db.close()
+    return sid[0]
+
+################## not used #############################################################
+#def get_cookie(user):
+#	db = sqlite3.connect("site.db")
+#	cur = db.cursor()
+#	cur.execute("select count(session_id) from users where session_id=?", (user,))
+#	sid = cur.fetchone()
+#	if sid == 1:
+#		cur.execute("select login from users where session_id=?", (user,))
+#		cur_user = cur.fetchone()
+#		return cur_user
+#	else:
+#		return sid
+##########################################################################################
+
+def pwd_gen(pwd):
+    password = hashlib.sha1(pwd).hexdigest()
+    hash_pwd = base64.b64encode(password)
+    return str(hash_pwd)
+
 @route('/static/<filepath:path>')
 def server_static(filepath):
     return static_file('style.css', root='static')
@@ -50,8 +99,9 @@ def do_reg():
     login = request.forms.get('login')
     pwd = request.forms.get('pwd')
     email = request.forms.get('email')
-    write_To_DB(login, pwd, email)
-    return "user was be added"
+    hashed_pwd = pwd_gen(pwd)
+    write_To_DB(login, hashed_pwd, email)
+    return "User succesfully created! <a href='/login'>Log In</a>"
 
 @route('/login')
 def login():
@@ -65,22 +115,27 @@ def login():
 def do_login():
     login = request.forms.get("login")
     pwd = request.forms.get("pwd")
+    hashed_pwd = pwd_gen(pwd)
     isUser = check_login(login)
     if isUser:
         user_pwd = read_pwd(login)
-        if pwd == user_pwd:
-            response.set_cookie("account", login, secret='some-secret-key')
+        if hashed_pwd == user_pwd:
+            sk = secret_key()
+            set_session_key(sk, login)
+            response.set_cookie("user", login, secret=sk)
             redirect('/lk')
         else:
             return "Bad password!"
     else:
         return "Bad Login!"
+
 @route('/restrict')
 def restrict():
-    return "You are not authorize. Please <a href='/login'>login</a> or <a href='/reg'>sight up</a>"
+    return "You are not authorize. Please <a href='/login'>login</a> or <a href='/reg'>sign up</a>"
+
 @route('/lk')
 def lk():
-    user = request.get_cookie("account", secret='some-secret-key')
+    user = request.get_cookie("user")
     if user:
         return template("views/lk.tpl")
     else:
@@ -88,7 +143,7 @@ def lk():
 
 @route('/logout')
 def logout():
-    response.set_cookie('account', login, secret=' ')
-    return "You logged out"
+    response.delete_cookie('user') 
+    return "You logged out <a href='/'>Main</a>"
 
 run(reloader=True, debug=True)
