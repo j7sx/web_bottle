@@ -20,7 +20,7 @@
 	<h2>Меню</h2><br>
         <a href="/reg">rega</a><br>
         <a href="/login">login</a><br>
-        <a href="/exit">logout</a><br>
+        <a href="/lk">private</a><br>
 
 	</div>
 		 
