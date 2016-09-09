@@ -5,6 +5,7 @@ import sqlite3
 import random
 import hashlib
 import base64
+import os
 from bottle import route, request, post, run, template, static_file, response, redirect
 
 def write_To_DB(login, pwd, email):
@@ -42,7 +43,6 @@ def secret_key():
 	return secret_key
 
 def set_session_key(sk, login):
-    sk = secret_key()
     db = sqlite3.connect("site.db")
     cur = db.cursor()
     cur.execute("update users set session_id=? where login =?", (sk, login,))
@@ -121,8 +121,8 @@ def do_login():
         user_pwd = read_pwd(login)
         if hashed_pwd == user_pwd:
             sk = secret_key()
-            set_session_key(sk, login)
-            response.set_cookie("user", login, secret=sk)
+            cookie = set_session_key(sk, login)
+            response.set_cookie("user", login, str(cookie))
             redirect('/lk')
         else:
             return "Bad password!"
