@@ -76,6 +76,7 @@ def delete_cookie(sid):
     cur = db.cursor()
     cur.execute("update users set session_id=? where session_id =?", (None, sid,))
     db.commit()
+    db.close()
 
 def pwd_gen(pwd):
     password = hashlib.sha1((pwd).encode('utf-8')).digest()
