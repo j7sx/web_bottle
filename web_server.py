@@ -71,8 +71,14 @@ def get_session_key(login):
 #		return sid
 ##########################################################################################
 
+def delete_cookie(sid):
+    db = sqlite3.connect("site.db")
+    cur = db.cursor()
+    cur.execute("update users set session_id=? where session_id =?", (None, sid,))
+    db.commit()
+
 def pwd_gen(pwd):
-    password = hashlib.sha1(pwd).hexdigest()
+    password = hashlib.sha1((pwd).encode('utf-8')).digest()
     hash_pwd = base64.b64encode(password)
     return str(hash_pwd)
 
@@ -121,8 +127,9 @@ def do_login():
         user_pwd = read_pwd(login)
         if hashed_pwd == user_pwd:
             sk = secret_key()
-            cookie = set_session_key(sk, login)
-            response.set_cookie("user", login, str(cookie))
+            set_session_key(sk, login)
+            cookie = get_session_key(login)
+            response.set_cookie("user", str(cookie), path='/')
             redirect('/lk')
         else:
             return "Bad password!"
@@ -143,7 +150,9 @@ def lk():
 
 @route('/logout')
 def logout():
+    sid = request.get_cookie("user")
+    delete_cookie(sid)
     response.delete_cookie('user') 
-    return "You logged out <a href='/'>Main</a>"
+    return "You logged out <a href='/'>Main page</a>"
 
 run(reloader=True, debug=True)
