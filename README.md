@@ -8,3 +8,4 @@ simple bottle app
 Командуем: sudo /usr/bin/python2 setup.py install
 Далее переходим в папку с проектом, делаем исполняемым web_server.py и запускаем. Или запускаем так: python web_server.py.
 Переходим в браузер по адресу http://127.0.0.1:8080
+# web_bottle_v2
